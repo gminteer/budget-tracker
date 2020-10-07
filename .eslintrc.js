@@ -1,4 +1,5 @@
-const devDependencies = Object.keys(require('./package.json').devDependencies) || {};
+const devDependencies =
+  Object.keys(require('./package.json').devDependencies) || {};
 
 module.exports = {
   env: {
@@ -36,29 +37,19 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['__tests__/**', '**/__mocks__/**', 'test/**', 'util/**'],
-      env: {
-        'jest/globals': true,
-      },
-      plugins: ['jest'],
-      extends: ['plugin:jest/recommended', 'plugin:jest/style'],
-      rules: {
-        'node/no-unpublished-require': ['error', {allowModules: devDependencies}],
-      },
-    },
-    {
-      files: ['static/**/*.js'],
-      // plugins: ['compat'], something's up with eslint-plugin-compat "Unknown browser query `Baidu all`"
+      files: ['public/**/*.js'],
       env: {
         node: false,
         browser: true,
       },
-      // extends: ['plugin:compat/recommended'],
     },
     {
-      files: ['./postcss.config.js', 'bin/seed*'],
+      files: ['bin/seed'],
       rules: {
-        'node/no-unpublished-require': ['error', {allowModules: devDependencies}],
+        'node/no-unpublished-require': [
+          'error',
+          {allowModules: devDependencies},
+        ],
       },
     },
   ],

@@ -12,7 +12,7 @@ async function uploadLocalCache() {
   getAll.onsuccess = async () => {
     if (getAll.result.length < 1) return;
     try {
-      const response = await fetch('/api/transaction/bulk', {
+      await fetch('/api/transaction/bulk', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
