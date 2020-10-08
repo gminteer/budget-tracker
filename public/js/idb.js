@@ -5,7 +5,18 @@ let db;
 
 const request = indexedDB.open(COLLECTION, 1);
 
-async function uploadLocalCache() {
+request.onupgradeneeded = (event) => {
+  db = event.target.result;
+  db.createObjectStore(OBJ_STORE, {autoIncrement: true});
+};
+
+request.onsuccess = (event) => (db = event.target.result);
+
+request.onerror = (event) =>
+  console.error(`IndexedDB error: ${event.target.errorCode}`);
+
+window.addEventListener('online', async () => {
+  if (!db) return;
   const transaction = db.transaction([OBJ_STORE], 'readwrite');
   const objStore = transaction.objectStore(OBJ_STORE);
   const getAll = objStore.getAll();
@@ -20,6 +31,7 @@ async function uploadLocalCache() {
         },
         body: JSON.stringify(getAll.result),
       });
+      // need to open a new transaction to clear object store
       const transaction = db.transaction([OBJ_STORE], 'readwrite');
       const objStore = transaction.objectStore(OBJ_STORE);
       objStore.clear();
@@ -28,19 +40,10 @@ async function uploadLocalCache() {
       console.error(err);
     }
   };
-}
-window.addEventListener('online', uploadLocalCache);
+});
 
-request.onupgradeneeded = (event) => {
-  db = event.target.result;
-  db.createObjectStore(OBJ_STORE, {autoIncrement: true});
-};
-
-request.onsuccess = (event) => (db = event.target.result);
-request.onerror = (event) =>
-  console.error(`IndexedDB error: ${event.target.errorCode}`);
-
-function saveRecord(record) {
+export default function saveRecord(record) {
+  if (!db) return;
   const transaction = db.transaction([OBJ_STORE], 'readwrite');
   const objStore = transaction.objectStore(OBJ_STORE);
   objStore.add(record);

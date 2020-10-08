@@ -1,13 +1,15 @@
 {
   "name": "budget-app",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
   "main": "server.js",
+  "engines": {
+    "node": ">=12.18.4"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "start:dev": "nodemon",
-    "lite-server": "lite-server"
+    "start:dev": "nodemon"
   },
   "repository": {
     "type": "git",
