@@ -120,7 +120,7 @@ function sendTransaction(isAdding) {
 
   // also send to server and/or save in indexeddb
 
-  save(transaction)
+  saveHandler(transaction)
     .then((data) => {
       if (data.errors) {
         errorEl.textContent = 'Missing Information';
