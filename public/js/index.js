@@ -122,7 +122,7 @@ function sendTransaction(isAdding) {
 
   saveHandler(transaction)
     .then((data) => {
-      if (data.errors) {
+      if (data && data.errors) {
         errorEl.textContent = 'Missing Information';
       } else {
         // clear form
