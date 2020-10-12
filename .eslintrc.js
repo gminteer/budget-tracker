@@ -33,10 +33,10 @@ module.exports = {
       files: ['*.js'],
       excludedFiles: 'public/**/*.js',
       env: {node: true},
-      extends: baseExtends.concat([
+      extends: baseExtends.concat(
         'plugin:node/recommended',
-        'plugin:security/recommended',
-      ]),
+        'plugin:security/recommended'
+      ),
       rules: baseRules,
     },
     {

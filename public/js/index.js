@@ -1,5 +1,5 @@
 /* global Chart */
-import saveRecord from './idb.js';
+import saveHandler from './idb.js';
 
 let transactions = [];
 let myChart;
@@ -114,18 +114,13 @@ function sendTransaction(isAdding) {
   populateTable();
   populateTotal();
 
-  // also send to server
-  fetch('/api/transaction', {
-    method: 'POST',
-    body: JSON.stringify(transaction),
-    headers: {
-      Accept: 'application/json, text/plain, */*',
-      'Content-Type': 'application/json',
-    },
-  })
-    .then((response) => {
-      return response.json();
-    })
+  // clear form
+  nameEl.value = '';
+  amountEl.value = '';
+
+  // also send to server and/or save in indexeddb
+
+  save(transaction)
     .then((data) => {
       if (data.errors) {
         errorEl.textContent = 'Missing Information';
@@ -136,14 +131,7 @@ function sendTransaction(isAdding) {
       }
       return;
     })
-    .catch(() => {
-      // fetch failed, so save in indexed db
-      saveRecord(transaction);
-
-      // clear form
-      nameEl.value = '';
-      amountEl.value = '';
-    });
+    .catch((err) => console.error(err));
 }
 
 document.querySelector('#add-btn').onclick = function () {

@@ -15,7 +15,7 @@ request.onsuccess = (event) => (db = event.target.result);
 request.onerror = (event) =>
   console.error(`IndexedDB error: ${event.target.errorCode}`);
 
-window.addEventListener('online', async () => {
+async function uploadLocal() {
   if (!db) return;
   const transaction = db.transaction([OBJ_STORE], 'readwrite');
   const objStore = transaction.objectStore(OBJ_STORE);
@@ -23,7 +23,7 @@ window.addEventListener('online', async () => {
   getAll.onsuccess = async () => {
     if (getAll.result.length < 1) return;
     try {
-      await fetch('/api/transaction/bulk', {
+      const response = await fetch('/api/transaction/bulk', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -31,6 +31,8 @@ window.addEventListener('online', async () => {
         },
         body: JSON.stringify(getAll.result),
       });
+      if (navigator.onLine && !response.ok && response.status === 503)
+        return retryAfter(120);
       // need to open a new transaction to clear object store
       const transaction = db.transaction([OBJ_STORE], 'readwrite');
       const objStore = transaction.objectStore(OBJ_STORE);
@@ -40,11 +42,40 @@ window.addEventListener('online', async () => {
       console.error(err);
     }
   };
-});
+}
+window.addEventListener('online', uploadLocal);
 
-export default function saveRecord(record) {
+function retryAfter(seconds) {
+  if (!navigator.onLine) return console.info('Offline. Will retry when online');
+  console.warn(`Server not responding, waiting ${seconds}s`);
+  setTimeout(uploadLocal, seconds * 1000);
+}
+
+function idbSave(record) {
   if (!db) return;
   const transaction = db.transaction([OBJ_STORE], 'readwrite');
   const objStore = transaction.objectStore(OBJ_STORE);
   objStore.add(record);
+}
+
+export default async function saveHandler(transaction) {
+  try {
+    const response = await fetch('/api/transaction', {
+      method: 'POST',
+      body: JSON.stringify(transaction),
+      headers: {
+        Accept: 'application/json, text/plain, */*',
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok && response.status === 503) {
+      idbSave(transaction);
+      retryAfter(120);
+      return;
+    }
+    return response.json();
+  } catch (err) {
+    // we're offline
+    idbSave(transaction);
+  }
 }

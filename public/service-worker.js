@@ -5,6 +5,7 @@ const FILES_TO_CACHE = [
   './js/idb.js',
   './js/index.js',
   './manifest.json',
+  '/api/transaction',
   'https://cdn.jsdelivr.net/npm/chart.js@2.8.0',
   'https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css',
   'https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/fonts/fontawesome-webfont.woff2?v=4.7.0',
@@ -44,7 +45,7 @@ async function apiCacheHandler(request) {
     if (!response.ok) {
       if (request.method === 'GET') {
         return (
-          (await caches.match(request)) || new Response(null, {status: 404})
+          (await caches.match(request)) || new Response(null, {status: 503})
         );
       } else {
         return new Response(null, {status: 500});
@@ -55,7 +56,7 @@ async function apiCacheHandler(request) {
       console.debug(`Updating cache: ${request.url}`);
       cache.add(request, response.clone());
     } else if (request.method === 'POST') {
-      if (!response.ok) return new Response(null, {status: 500});
+      if (!response.ok) return response; // error handling by loudly insisting it isn't *my* problem
       // update the cache for the associated GET route aggressively
       // because we're a PWA and the network could disappear at any moment
       const url = request.url.replace('/bulk', '');
@@ -65,7 +66,7 @@ async function apiCacheHandler(request) {
     }
     return response;
   } catch (err) {
-    return (await caches.match(request)) || new Response(null, {status: 404});
+    return (await caches.match(request)) || new Response(null, {status: 503});
   }
 }
 
@@ -91,7 +92,7 @@ self.addEventListener('fetch', (event) => {
         return (
           (await caches.match(event.request)) ||
           (await fetch(event.request)) ||
-          new Response(null, {status: 404})
+          new Response(null, {status: 503})
         );
       }
       // assert(url.pathname.indexOf('/api') >= 0)
